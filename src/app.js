@@ -1,10 +1,9 @@
-import { token } from '../config/token';
+import { token, user } from '../config/token';
 import TelegramBot from 'node-telegram-bot-api';
 import schedule from 'node-schedule';
 import request from 'request';
 import cheerio from 'cheerio';
 import dateFormat from 'dateformat';
-import { user } from '../config/token';
 
 const bot = new TelegramBot(token.telegram, { polling: true });
 
@@ -17,11 +16,11 @@ const showAlive = () => {
 };
 
 const sendMessage = $ => {
-  const hasMinestrone = $('.main .blog-posts .date-outer .MsoNormal:contains("MINESTRONE")').first().text()
+  const minestroneMessage = $('.main .blog-posts .date-outer .MsoNormal:contains("MINESTRONE")').first().text()
     ? 'Hoje tem Minestrone hein! \u{1F389}\u{1F60D}\u{1F35C}'
     : 'Hoje não tem Minestrone. \u{1F61E}\u{1F62D}';
 
-  bot.sendMessage(user.reginaldoMorais, hasMinestrone);
+  bot.sendMessage(user.reginaldoMorais, minestroneMessage);
 };
 
 const sendMessageErr = () => {
