@@ -1,6 +1,6 @@
 # Minestrone-Please Agent Bot
 
-Aplicação middleware para interpretação e execução de relatórios.
+Bot de Telegram que verifica em um restaurante o cardápio do dia e informa se tem um prato específico.
 
 
 ## Pré-Requisito
@@ -16,7 +16,7 @@ Para executar a aplicação é necessário criar um arquivo token.json, na pasta
     "apiai": "Api.ai Account key"
   },
   "user": {
-    "Telegran User Id": 000000
+    "Telegram User Id": 000000
   }
 }
 ```
