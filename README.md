@@ -12,8 +12,7 @@ Para executar a aplicação é necessário criar um arquivo token.json, na pasta
 ```json
 {
   "token": {
-    "telegram": "Telegram bot key",
-    "apiai": "Api.ai Account key"
+    "telegram": "Telegram bot key"
   },
   "user": {
     "Telegram User Id": 000000
