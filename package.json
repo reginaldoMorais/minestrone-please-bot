@@ -6,7 +6,8 @@
   "scripts": {
     "serve:dev": "NODE_ENV=dev nodemon src",
     "serve:prod": "NODE_ENV=prod node src",
-    "debug": "NODE_ENV=dev node debug src"
+    "debug": "NODE_ENV=dev node debug src",
+    "start": "npm run serve:prod"
   },
   "author": "",
   "license": "ISC",

@@ -1,7 +1,7 @@
 {
   "name": "minestrone-please-bot",
   "scripts": {
-    "postdeploy": "npm run serve:prod"
+    "postdeploy": "npm start"
   },
   "env": {
   },
