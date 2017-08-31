@@ -1,14 +1,56 @@
 import { token, user } from '../config/token';
 import TelegramBot from 'node-telegram-bot-api';
 import schedule from 'node-schedule';
-import request from 'request';
+import axios from 'axios';
 import cheerio from 'cheerio';
 import dateFormat from 'dateformat';
 
 const bot = new TelegramBot(token.telegram, { polling: true });
+let userList = [];
 
-var userList = [];
+/**
+ * inicia os listeners do bot Telegram para incluir ou remover um membro.
+ */
+const startBotsListeners = () => {
+  /**
+   * responsavel por incluir membro
+   */
+  bot.onText(/\/start/, (msg, match) => {
+    const chatId = msg.chat.id;
 
+    userList[userList.length] = chatId;
+
+    bot.sendMessage(
+      chatId,
+      'Oi, amizo! \nQue bom que você curte o Minestrone. \u{1F35C} \n\nIremos te avisar se a cada dia o restaurante vai servir esta deliciosa refeição. Fique ligado em mim! \n\nAh!! E caso queira deixar de receber estes reports é só digitar, a qualquer momento, o comando /leave e voilà, vou parar de encher o teu saco. \n\nBom, por enquanto é isso. Até mais!!'
+    );
+    console.log('==> Amizo novo:', chatId);
+  });
+
+  /**
+   * responsavel por remover membro
+   */
+  bot.onText(/\/leave/, (msg, match) => {
+    const chatId = msg.chat.id;
+
+    userList = userList.filter(function(item) {
+      return item != chatId;
+    });
+
+    console.log('==> Amizo foi embora:', chatId);
+  });
+
+  /**
+   * apenas loga as mensagens recebidas pelo bot
+   */
+  bot.on('message', msg => {
+    console.log('==> Mensagem recebida: \n', msg);
+  });
+};
+
+/**
+ * informa se a aplicação está ativa, a cada 30 min.
+ */
 const showAlive = () => {
   console.log('\n\n::: APP started. :::\n==> Hey Im alive!!', dateFormat(new Date(), 'd/mm/yyyy, h:MM:ss TT'));
 
@@ -17,16 +59,23 @@ const showAlive = () => {
   }, 1800000);
 };
 
+/**
+ * envia mensagem para os membros.
+ * @param {cheerio} $
+ */
 const sendMessage = $ => {
   const minestroneMessage = $('.main .blog-posts .date-outer .MsoNormal:contains("MINESTRONE")').first().text()
     ? 'Hoje tem Minestrone hein! \u{1F389}\u{1F60D}\u{1F35C}'
     : 'Hoje não tem Minestrone. \u{1F61E}\u{1F62D}';
 
-  for(var i = 0; i < userList.length; i++) {
+  for (let i = 0; i < userList.length; i++) {
     bot.sendMessage(userList[i], minestroneMessage);
   }
 };
 
+/**
+ * envia mensagem para o membro admin informando que algo não está correto com a aplicação.
+ */
 const sendMessageErr = () => {
   console.log('==> Falha ao acessar site.');
   bot.sendMessage(
@@ -35,6 +84,9 @@ const sendMessageErr = () => {
   );
 };
 
+/**
+ * crawler que recupera as informações e dispara as mensagens aos membros.
+ */
 const getBroto = () => {
   const pageToVisit = 'http://restaurantebdf.blogspot.com.br';
   // const pageToVisit2 = 'http://restaurantebdf.blogspot.com.br/2017/08/broto-de-feijao-03082017-quinta-feira-1.html';
@@ -42,81 +94,57 @@ const getBroto = () => {
   console.log('\n================ Run now!');
   console.log('Visiting page', pageToVisit);
 
-  request(pageToVisit, (error, response, body) => {
-    if (error) {
-      console.log('Error:', error);
-    }
+  axios
+    .get(pageToVisit)
+    .then(response => {
+      console.log('Status code:', response.status);
 
-    console.log('Status code:', response.statusCode);
+      if (response.status === 200) {
+        const $ = cheerio.load(response.data);
 
-    if (response.statusCode === 200) {
-      const $ = cheerio.load(body);
+        console.log('==> Page title:', $('title').text());
+        console.log('==> Date:', $('.main .blog-posts .date-header').first().text());
+        console.log(
+          '==> Title:',
+          $('.main .blog-posts .date-outer .MsoNormal:contains("MINESTRONE")').first().text() ||
+            'Hoje não tem Minestrone.'
+        );
 
-      console.log('==> Page title:', $('title').text());
-      console.log('==> Date:', $('.main .blog-posts .date-header').first().text());
-      console.log(
-        '==> Title:',
-        $('.main .blog-posts .date-outer .MsoNormal:contains("MINESTRONE")').first().text() ||
-          'Hoje não tem Minestrone.'
-      );
+        const todayDay = dateFormat(new Date(), 'd');
+        const hasPostToday = $(`.main .blog-posts .date-header`).first().text().indexOf(todayDay) > 0 ? true : false;
 
-      const todayDay = dateFormat(new Date(), 'd');
-      const hasPostToday = $(`.main .blog-posts .date-header`).first().text().indexOf(todayDay) > 0 ? true : false;
-
-      if (hasPostToday) {
-        sendMessage($);
+        if (hasPostToday) {
+          sendMessage($);
+        } else {
+          console.log('==> Ainda não foi atualizado. Vou tentar de novo mais tarde.');
+          setTimeout(() => getBroto(), 900000);
+        }
       } else {
-        console.log('==> Ainda não foi atualizado. Vou tentar de novo mais tarde.');
-        setTimeout(() => getBroto(), 15000);
+        sendMessageErr();
       }
-    } else {
+
+      console.log('================ Finished!\n\n');
+    })
+    .catch(error => {
       sendMessageErr();
-    }
-    console.log('================ Finished!\n\n');
-  });
+      console.error('==> error \n', error);
+      console.log('================ Finished!\n\n');
+    });
 };
 
+/**
+ * inicia a aplicação.
+ */
 const startApp = () => {
   showAlive();
-  
   const job = schedule.scheduleJob('10 11 * * 0-5', () => getBroto());
   console.log('==> Job scheduled.');
-  
-  if (process.env.DEBUGGER) console.log('==>', job);
 
-  bot.onText(/\/start/, (msg, match) => {
-    const chatId = msg.chat.id;
-  
-    userList[userList.length] = chatId;
-    
-    bot.sendMessage(chatId, 'Oi, amizo!');
-    console.log('Amizo novo: ' + chatId);
-  });
-  
-  bot.onText(/\/leave/, (msg, match) => {
-    
-    const chatId = msg.chat.id;
-  
-    userList = userList.filter(function(item) {
-      return (item != chatId);
-    });
-    
-    console.log('Foi embora: ' + chatId);
-  });
-  
-  // apenas loga
-  bot.on('message', (msg) => {
-    const chatId = msg.chat.id;
-  
-    debugger;
-  
-    // bot.sendMessage(chatId, 'Received your message');
-    console.log('Mensagem recebida: ', msg);
-  
-  });
-  
+  startBotsListeners();
+
   // para testar execucao
-  // setInterval(() => getBroto(), 5000);
+  if (process.env.BROTO) setInterval(() => getBroto(), 5000);
+  if (process.env.DEBUGGER) console.log('==>', job);
 };
 
 startApp();
