@@ -9,51 +9,6 @@ const bot = new TelegramBot(token.telegram, { polling: true });
 
 var userList = [];
 
-bot.onText(/\/start/, (msg, match) => {
-  const chatId = msg.chat.id;
-
-  userList[userList.length] = chatId;
-  
-  bot.sendMessage(chatId, 'Oi, amizo!');
-  console.log('Amizo novo: ' + chatId);
-});
-
-bot.onText(/\/leave/, (msg, match) => {
-  
-  const chatId = msg.chat.id;
-
-  userList = userList.filter(function(item) {
-    return (item != chatId);
-  });
-  
-  console.log('Foi embora: ' + chatId);
-  bot.leaveChat(chatId);
-});
-
-// apenas loga
-bot.on('message', (msg) => {
-  const chatId = msg.chat.id;
-
-  debugger;
-
-  // bot.sendMessage(chatId, 'Received your message');
-  console.log('Mensagem recebida: ', msg);
-
-});
-
-// envia mensagem para todos os usuarios
-const boraLah = () => {
-
-  for(var i = 0; i < userList.length; i++) {
-    bot.sendMessage(userList[i], "Tudo bom?");
-  }
-
-  setTimeout(() => boraLah(), 20000);
-}
-
-
-
-
 const showAlive = () => {
   console.log('\n\n::: APP started. :::\n==> Hey Im alive!!', dateFormat(new Date(), 'd/mm/yyyy, h:MM:ss TT'));
 
@@ -67,7 +22,9 @@ const sendMessage = $ => {
     ? 'Hoje tem Minestrone hein! \u{1F389}\u{1F60D}\u{1F35C}'
     : 'Hoje não tem Minestrone. \u{1F61E}\u{1F62D}';
 
-  bot.sendMessage(user.reginaldoMorais, minestroneMessage);
+  for(var i = 0; i < userList.length; i++) {
+    bot.sendMessage(userList[i], minestroneMessage);
+  }
 };
 
 const sendMessageErr = () => {
@@ -122,15 +79,44 @@ const getBroto = () => {
 const startApp = () => {
   showAlive();
   
-  // getBroto();
-/*
   const job = schedule.scheduleJob('10 11 * * 0-5', () => getBroto());
   console.log('==> Job scheduled.');
   
   if (process.env.DEBUGGER) console.log('==>', job);
-*/
-  setTimeout(() => boraLah(), 3000);
 
+  bot.onText(/\/start/, (msg, match) => {
+    const chatId = msg.chat.id;
+  
+    userList[userList.length] = chatId;
+    
+    bot.sendMessage(chatId, 'Oi, amizo!');
+    console.log('Amizo novo: ' + chatId);
+  });
+  
+  bot.onText(/\/leave/, (msg, match) => {
+    
+    const chatId = msg.chat.id;
+  
+    userList = userList.filter(function(item) {
+      return (item != chatId);
+    });
+    
+    console.log('Foi embora: ' + chatId);
+  });
+  
+  // apenas loga
+  bot.on('message', (msg) => {
+    const chatId = msg.chat.id;
+  
+    debugger;
+  
+    // bot.sendMessage(chatId, 'Received your message');
+    console.log('Mensagem recebida: ', msg);
+  
+  });
+  
+  // para testar execucao
+  // setInterval(() => getBroto(), 5000);
 };
 
 startApp();
