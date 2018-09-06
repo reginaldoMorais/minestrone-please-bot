@@ -20,6 +20,23 @@ Para executar a aplicação é necessário criar um arquivo token.json, na pasta
 }
 ```
 
+### Firebase
+
+Para carregar os usuários do Firebase é necessário criar um arquivo firebase.json, na pasta /config, com o conteúdo:
+
+```
+{
+  "apiKey": "<apiKey>",
+  "authDomain": "<authDomain>",
+  "databaseURL": "<databaseURL>",
+  "projectId": "<projectId>",
+  "storageBucket": "<storageBucket>",
+  "messagingSenderId": "<messagingSenderId>"
+}
+```
+
+Estas informações são adquiridas no painel de projeto do Firebase.
+
 ### Node version e dependências
 
 Para instalar a versão correta do Node, rode os seguintes comandos na pasta raiz do projeto:

@@ -21,6 +21,7 @@
     "babel-register": "6.26.0",
     "cheerio": "1.0.0-rc.2",
     "dateformat": "2.0.0",
+    "firebase": "^5.4.0",
     "install": "0.10.1",
     "node-schedule": "1.2.4",
     "node-telegram-bot-api": "^0.27.1",
@@ -31,7 +32,7 @@
     "eslint-config-google": "^0.7.1",
     "eslint-plugin-prettier": "^2.1.1",
     "eslint-plugin-react": "^7.0.1",
-    "prettier": "^1.3.1",
-    "nodemon": "^1.11.0"
+    "nodemon": "^1.11.0",
+    "prettier": "^1.3.1"
   }
 }
